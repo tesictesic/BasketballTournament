@@ -1,0 +1,14 @@
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\bin\Debug\net8.0\BasketballTournamentC#.exe
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\bin\Debug\net8.0\BasketballTournamentC#.deps.json
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\bin\Debug\net8.0\BasketballTournamentC#.runtimeconfig.json
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\bin\Debug\net8.0\BasketballTournamentC#.dll
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\bin\Debug\net8.0\BasketballTournamentC#.pdb
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.AssemblyInfoInputs.cache
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.AssemblyInfo.cs
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.csproj.CoreCompileInputs.cache
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.dll
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\refint\BasketballTournamentC#.dll
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.pdb
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.genruntimeconfig.cache
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\ref\BasketballTournamentC#.dll
