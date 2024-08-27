@@ -12,3 +12,4 @@ C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug
 C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.pdb
 C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.genruntimeconfig.cache
 C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\ref\BasketballTournamentC#.dll
+C:\Users\Djordje\Desktop\BasketballTournamentC#\BasketballTournamentC#\obj\Debug\net8.0\BasketballTournamentC#.sourcelink.json

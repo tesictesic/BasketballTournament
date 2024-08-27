@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace BasketballTournamentC_.BusinessLayer
 {
-    public class Group
+    public class Groups
     {
         public string Name { get; set; }
         public List<Teams> Teams { get; set; }
@@ -22,17 +22,12 @@ namespace BasketballTournamentC_.BusinessLayer
         public int PointsScored { get; set; } = 0;
         public int PointsReceived { get; set; } = 0;
         public int PointsDiff { get; set; } = 0;
+        public Dictionary<string,string> HeadToHeadResult { get; set; }= new Dictionary<string,string>();
     }
     public class Leadboard
     {
-        public List<Group> Groups { get; set; }= new List<Group>();
+        public List<Groups> Groups { get; set; }= new List<Groups>();
     }
-    public class LeadBordComparer : IComparer<Teams>
-    {
-        public int Compare(Teams x,Teams y)
-        {
-            return x.Wins.CompareTo(y.Wins);
-        }
-    }
+    
 
 }
