@@ -12,4 +12,20 @@ namespace BasketballTournamentC_.BusinessLayer
         public string Team2 { get; set; }
         public string Result { get; set; }
     }
+    public class EliminationSemiFinal
+    {
+        public Teams Team { get; set; }
+        public string LotteryGroup { get; set; }
+    }
+    public class MedalsRanking
+    {
+        public Teams Team { get; set; }
+        public MedalTypes Medal { get; set; }
+    }
+    public enum MedalTypes
+    {
+        Gold,
+        Silver,
+        Bronze
+    }
 }

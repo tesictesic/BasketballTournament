@@ -13,6 +13,7 @@ class Program
 {
     static void Main(string[] args)
     {
+        string result = "";
         string group_json = File.ReadAllText("C:\\Users\\Djordje\\Desktop\\BasketballTournamentC#\\BasketballTournamentC#\\Data\\groups.json");
         var groups = JsonSerializer.Deserialize<Dictionary<string, List<Teams>>>(group_json);
         Leadboard leadboard = new Leadboard();
@@ -100,7 +101,7 @@ class Program
         List<Teams> semi_finals_teams = new List<Teams>();
         foreach (var teams in eliminatios_phase)
         {
-            string result = "";
+             result = "";
             Console.WriteLine($"\t {teams.Item1.Team} - {teams.Item2.Team}");
             SimulateEliminationMatch(teams.Item1, teams.Item2,semi_finals_teams, out result);
             Eliminations elimination = new Eliminations
@@ -117,12 +118,49 @@ class Program
         {
             Console.WriteLine($"\t {teams.Team1} - {teams.Team2} ({teams.Result})");
         }
+        Console.WriteLine($"Polufinale:({semi_finals_teams.Count})");
+        List<EliminationSemiFinal> elimination_semi_final = LotteringSemiFinal(semi_finals_teams, lottery);
+        List<(Teams, Teams)> semi_final_pairs = new List<(Teams, Teams)>();
+        foreach (var item in elimination_semi_final)
+        {
+            Console.WriteLine($"{item.Team.Team}    {item.LotteryGroup}");
+            
+        }
+        for(int i = 0; i < elimination_semi_final.Count; i += 2)
+        {
+            semi_final_pairs.Add((elimination_semi_final[i].Team, elimination_semi_final[i + 1].Team));
+        }
+        Console.WriteLine("Polufinale:");
+        List<Teams> teams_for_final_match = new List<Teams>(2);
+        List<Teams> teams_for_bronze_match = new List<Teams>(2);
+        List<(Teams,Teams)>final_match=new List<(Teams, Teams)>();
+        List<(Teams,Teams)> match_for_bronze=new List<(Teams, Teams)>();
+        foreach (var item in semi_final_pairs)
+        {
+            result = "";
+            
+            SimulateSemiFinalMatchs(item.Item1, item.Item2, out result,teams_for_final_match,teams_for_bronze_match);
+            Console.WriteLine($"{item.Item1.Team} - {item.Item2.Team} ({result})");
+        }
+        List<MedalsRanking> ranking = new List<MedalsRanking>(3);
        
-
-
-
-
-
+        final_match.Add((teams_for_final_match[0], teams_for_final_match[1]));
+        match_for_bronze.Add((teams_for_bronze_match[0], teams_for_bronze_match[1]));
+        Console.WriteLine("Utakmica za trece mesto:");
+        SimulateFinalAndThirdPlace(match_for_bronze[0].Item1, match_for_bronze[0].Item2, ranking, out result);
+        Console.WriteLine($"\t {match_for_bronze[0].Item1.Team}:{match_for_bronze[0].Item2.Team} ({result})");
+        Console.WriteLine("Finale:");
+        SimulateFinalAndThirdPlace(final_match[0].Item1, final_match[0].Item2, ranking, out result,true);
+        Console.WriteLine($"\t {final_match[0].Item1.Team}:{final_match[0].Item2.Team} ({result})");
+        var sorted_ranking = ranking.OrderBy(y => y.Medal);
+        Console.WriteLine("Medalje:");
+        k = 0;
+        foreach (var rank in sorted_ranking)
+        {
+            
+            k++;
+            Console.WriteLine($"{k}. {rank.Team.Team}");
+        }
 
 
     }
@@ -209,36 +247,56 @@ class Program
 
         bool validPairsFound = false;
         while (!validPairsFound)
-           
         {
+            validPairsFound = true;
+            pom_list.Clear(); // Očistite listu da biste krenuli ispočetka
+
             for (int i = 0; i < GroupD.Count; i++)
             {
-                validPairsFound = true;
                 Teams teamD = GroupD[i];
                 Teams teamG = GroupG[i];
 
                 Teams teamE = GroupE[i];
                 Teams teamF = GroupF[i];
 
-
-
-                if ((!teamD.HeadToHeadResult.Any(y => y.Key.Contains(teamG.Team))) && (!teamE.HeadToHeadResult.Any(y => y.Key.Contains(teamF.Team))))
+                // Proveravamo da li timovi nisu igrali jedni protiv drugih
+                if ((!teamD.HeadToHeadResult.Any(y => y.Key.Contains(teamG.Team))) &&
+                    (!teamE.HeadToHeadResult.Any(y => y.Key.Contains(teamF.Team))))
                 {
-                    pom_list.Add((teamD, teamG));
-                    pom_list.Add((teamE, teamF));
-                    
+                    // Proveravamo da li timovi već postoje u pom_listi
+                    bool teamDExists = pom_list.Any(pair => pair.Item1 == teamD || pair.Item2 == teamD);
+                    bool teamGExists = pom_list.Any(pair => pair.Item1 == teamG || pair.Item2 == teamG);
+                    bool teamEExists = pom_list.Any(pair => pair.Item1 == teamE || pair.Item2 == teamE);
+                    bool teamFExists = pom_list.Any(pair => pair.Item1 == teamF || pair.Item2 == teamF);
+
+                    // Dodajemo timove samo ako već ne postoje u pom_listi
+                    if (!teamDExists && !teamGExists && !teamEExists && !teamFExists)
+                    {
+                        pom_list.Add((teamD, teamG));
+                        pom_list.Add((teamE, teamF));
+                    }
                 }
-                else
+
+                // Ako smo dodali sve parove, završavamo petlju
+                if (pom_list.Count == 4)
                 {
-                    validPairsFound=false;
-                    Shuffle(GroupD);
-                    Shuffle(GroupE);
-                    Shuffle(GroupF);
-                    Shuffle(GroupG);
+                    validPairsFound = true;
                     break;
                 }
             }
+
+            // Ako nakon jednog prolaska kroz sve timove nismo formirali sve parove, ponovno mešamo timove
+            if (pom_list.Count < 4)
+            {
+                validPairsFound = false;
+                Shuffle(GroupD);
+                Shuffle(GroupE);
+                Shuffle(GroupF);
+                Shuffle(GroupG);
+            }
         }
+
+
         return pom_list;
     }
     public static void Shuffle(List<Teams> list)
@@ -254,12 +312,15 @@ class Program
             list[n] = value;
         }
     }
-
-        public static void SimulateEliminationMatch(Teams team1,Teams team2,List<Teams> semi_finals, out string el)
+    public static void SimulateEliminationMatch(Teams team1,Teams team2,List<Teams> semi_finals, out string el)
     {
-        Random random_result_for_teams=new Random();
-        int team1_points = random_result_for_teams.Next(60, 120);
-        int team2_points = random_result_for_teams.Next(60, 120);
+        
+        int team1_points = SimulatingGame();
+        int team2_points = SimulatingGame();
+        if (team1_points == team2_points)
+        {
+            SimulateEliminationMatch(team1, team2, semi_finals,out el);
+        }
         el = $"{team1_points}:{team2_points}";
         if (team1_points > team2_points)
         {
@@ -270,6 +331,130 @@ class Program
         {
             semi_finals.Add(team2);
         }
+       
     }
+    public static int SimulatingGame()
+    {
+        Random random_result_for_teams = new Random();
+        return random_result_for_teams.Next(60, 120);
+    }
+    public static List<EliminationSemiFinal> LotteringSemiFinal(List<Teams> teams, Dictionary<string, List<Teams>> lottery)
+    {
+        List<EliminationSemiFinal> elimination_semi_final=new List<EliminationSemiFinal>();
+        foreach(var lot in lottery)
+        {
+            var lot_teams = lot.Value;
+            foreach(var lot_team in lot_teams)
+            {
+                foreach(var team in teams)
+                {
+                    if (lot_team.Team == team.Team)
+                    {
+                        EliminationSemiFinal eliminationSemiFinal = new EliminationSemiFinal
+                        {
+                            Team = lot_team,
+                            LotteryGroup = lot.Key
+                        };
+                        elimination_semi_final.Add(eliminationSemiFinal);
+                    }
+                }
+            }
+        }
+        return elimination_semi_final;
+    }
+    public static void SimulateSemiFinalMatchs(Teams team1,Teams team2,out string el,List<Teams> teams_final_match,List<Teams> teams_bronze_match)
+    {
+        int team1_points = SimulatingGame();
+        int team2_points = SimulatingGame();
+        if (team1_points == team2_points)
+        {
+            SimulateSemiFinalMatchs(team1,team2,out el,teams_final_match,teams_bronze_match);  
+        }
+        el = $"{team1_points}:{team2_points}";
+        if (team1_points > team2_points)
+        {
+            teams_final_match.Add(team1);
+            teams_bronze_match.Add(team2);
+        }
+        else
+        {
+            teams_final_match.Add(team2);
+            teams_bronze_match.Add(team1);
+        }
+    }
+    public static void SimulateFinalAndThirdPlace(Teams team1,Teams team2,List<MedalsRanking> ranking,out string result,bool finale_match = false)
+    {
+        int team1_points = SimulatingGame();
+        int team2_points = SimulatingGame();
+        MedalsRanking medalsRankingGold = null;
+        MedalsRanking medalsRankingSilver = null;
+        MedalsRanking medalRankingBronze = null;
+        result = $"{team1_points}:{team2_points}";
+        if (team1_points == team2_points)
+        {
+            SimulateFinalAndThirdPlace(team1,team2,ranking,out result,finale_match);
+        }
+
+        if(team1_points > team2_points)
+        {
+            if (finale_match)
+            {
+                medalsRankingGold = new MedalsRanking
+                {
+                    Team = team1,
+                    Medal = MedalTypes.Gold
+                };
+                medalsRankingSilver = new MedalsRanking
+                {
+                    Team = team2,
+                    Medal = MedalTypes.Silver
+                };
+                ranking.Add(medalsRankingGold);
+                ranking.Add(medalsRankingSilver);
+            }
+            else
+            {
+                medalRankingBronze = new MedalsRanking
+                {
+                    Team = team1,
+                    Medal = MedalTypes.Bronze
+                };
+                ranking.Add(medalRankingBronze);
+            }
+        }
+        else
+        {
+            if (finale_match)
+            {
+                medalsRankingGold = new MedalsRanking
+                {
+                    Team = team2,
+                    Medal = MedalTypes.Gold
+                };
+                ranking.Add(medalsRankingGold);
+                medalsRankingSilver = new MedalsRanking
+                {
+                    Team = team1,
+                    Medal = MedalTypes.Silver
+                };
+                ranking.Add(medalsRankingSilver);
+            }
+            else
+            {
+                medalRankingBronze = new MedalsRanking
+                {
+                    Team = team2,
+                    Medal = MedalTypes.Bronze
+                };
+                ranking.Add(medalRankingBronze);
+            }
+        }
+        ;
+        
+        
+       
+    }
+
+    
 }
     
