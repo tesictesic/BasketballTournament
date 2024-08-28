@@ -1,14 +1,5 @@
-﻿using System;
-using System.IO;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
+﻿using BasketballTournamentC_.BusinessLayer;
 using System.Text.Json;
-using BasketballTournamentC_.BusinessLayer;
-using System.Runtime.CompilerServices;
-using System.Text.RegularExpressions;
 class Program
 {
     static void Main(string[] args)
@@ -16,18 +7,36 @@ class Program
         string result = "";
         string group_json = File.ReadAllText("C:\\Users\\Djordje\\Desktop\\BasketballTournamentC#\\BasketballTournamentC#\\Data\\groups.json");
         var groups = JsonSerializer.Deserialize<Dictionary<string, List<Teams>>>(group_json);
+        List<Dictionary<string,List<string>>> rounds= new List<Dictionary<string, List<string>>>();
         Leadboard leadboard = new Leadboard();
         foreach (var group in groups)
         {
             var team = group.Value;
+
+            int Intround = 1;
             for (int i = 0; i < team.Count; i++)
             {
+                if (i == 1) Intround = 3;
+                if(i==2) Intround = 1;
+
                 for (int j = i + 1; j < team.Count; j++)
                 {
+                    string StrRound = Intround.ToString();
+                    var kitica = team[j];
                     Teams team1 = team[i];
                     Teams team2 = team[j];
-                    SimulateGroup(team1, team2);
+                    SimulateGroup(team1, team2,rounds,StrRound);
+                   
+                    if (i == 1) Intround--;
+                    else
+                    {
+                        Intround++;
+                    }
+                    
+
                 }
+                
+
             }
             Groups group1=new Groups();
             group1.Name = group.Key;
@@ -35,6 +44,20 @@ class Program
             leadboard.Groups.Add(group1);
             
             
+        }
+        foreach(var keys in rounds)
+        {
+           
+            
+            foreach(var key in keys)
+            {
+                var fixtures = key.Value;
+                Console.WriteLine($"Kolo: {key.Key}");
+                foreach(var fixture in fixtures)
+                {
+                    Console.WriteLine($"\t {fixture}");
+                }
+            }
         }
         List<Teams> all_Teams=new List<Teams>();
         foreach(var group in leadboard.Groups)
@@ -164,7 +187,7 @@ class Program
 
 
     }
-    public static void SimulateGroup(Teams team1, Teams team2)
+    public static void SimulateGroup(Teams team1, Teams team2,List<Dictionary<string, List<string>>> rounds,string round)
     {
         Teams winner_team = null;
         Teams losser_team = null;
@@ -180,9 +203,11 @@ class Program
             winner_team = team2;
             losser_team = team1;
         }
-        GenerateScoreInGroups(winner_team, losser_team);
+        
+       GenerateScoreInGroups(winner_team, losser_team,rounds,round);
+        
     }
-    public static void GenerateScoreInGroups(Teams team1, Teams team2)
+    public static void GenerateScoreInGroups(Teams team1, Teams team2, List<Dictionary<string, List<string>>> rounds, string round)
     {
 
         Random random = new Random();
@@ -202,9 +227,87 @@ class Program
         team2.PointsDiff += second_team_diff_points;
         team1.HeadToHeadResult.Add(team2.Team, $"{first_team_score}:{second_team_score}");
         team2.HeadToHeadResult.Add(team1.Team, $"{first_team_score}:{second_team_score}");
+        string value= $"{team1.Team}:{team2.Team}:({first_team_score}:{second_team_score})";
+        AddValueIfNotExistsInRounds(round, value, rounds);
+        
+        //return $"{team1.Team}:{team2.Team} ({first_team_score}:{second_team_score})";
 
 
     }
+    public static void AddValueIfNotExistsInRounds(string key, string value, List<Dictionary<string, List<string>>> rounds)
+    {
+        if (rounds.Count == 0)
+        {
+            var newRound = new Dictionary<string, List<string>>
+        {
+            { key, new List<string> { value } }
+        };
+            rounds.Add(newRound);
+            return;
+        }
+        var splited_value = value.Split(":");
+         var team1 =splited_value[0];
+        var team2 = splited_value[1];
+
+        bool isKeyExist = false;
+
+        foreach (var round in rounds)
+        {
+            // Check if any existing key contains both teams, regardless of order
+            foreach (var item in round)
+            {
+
+                if (item.Key.Contains(key))
+                {
+                    isKeyExist = true;
+                   foreach(var vals in item.Value)
+                    {
+                        var splited_val = vals.Split(":");
+                        var teamIn1 = splited_val[0];
+                        var teamIn2 = splited_val[1];
+                        if (!(teamIn1.Equals(team2) && (teamIn1.Equals(team1))&&(teamIn2.Equals(team2))&&(teamIn2.Equals(team1)))){
+                            
+                            round[item.Key].Add(value);
+                            return;
+                        }
+                       
+                    }
+                }
+
+                //if ((teamsInExistingKey[0] == teamsInNewKey[0] && teamsInExistingKey[1] == teamsInNewKey[1]) ||
+                //    (teamsInExistingKey[0] == teamsInNewKey[1] && teamsInExistingKey[1] == teamsInNewKey[0]))
+                //{
+                //    keyExists = true;
+
+                //    // Add the value only if it doesn't already exist in the list
+                //    if (!round[existingKey].Contains(value))
+                //    {
+                //        round[existingKey].Add(value);
+                //    }
+
+                //    break;
+                //}
+            
+            }
+
+           
+        }
+            if(!isKeyExist)
+        {
+            // If the key doesn't exist in any form, create a new list with the value and add it to the dictionary
+            var newRound = new Dictionary<string, List<string>>
+        {
+            { key, new List<string> { value } }
+        };
+            rounds.Add(newRound);
+            return;
+        }
+
+        // If the key wasn't found in any round, add it as a new entry
+
+    }
+
+
     public static List<Teams> RankTeamsInGroup(List<Teams> teams)
     {
         teams.Sort((x, y) =>
