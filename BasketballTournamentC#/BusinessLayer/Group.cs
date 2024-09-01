@@ -23,6 +23,7 @@ namespace BasketballTournamentC_.BusinessLayer
         public int PointsReceived { get; set; } = 0;
         public int PointsDiff { get; set; } = 0;
         public Dictionary<string,string> HeadToHeadResult { get; set; }= new Dictionary<string,string>();
+        public double Form { get; set; } = 0;
     }
     public class Leadboard
     {

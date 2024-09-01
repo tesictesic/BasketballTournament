@@ -5,10 +5,27 @@ class Program
     static void Main(string[] args)
     {
         string result = "";
-        string group_json = File.ReadAllText("C:\\Users\\Djordje\\Desktop\\BasketballTournamentC#\\BasketballTournamentC#\\Data\\groups.json");
-        var groups = JsonSerializer.Deserialize<Dictionary<string, List<Teams>>>(group_json);
+        string exhibition_match = File.ReadAllText("C:\\Users\\Djordje\\Desktop\\BasketballTournamentC#\\BasketballTournamentC#\\Data\\exibitions.json");
+        var groups = GetGroupsFromJson();
+        var exibitions=JsonSerializer.Deserialize<Dictionary<string,List<Match>>>(exhibition_match);
         List<Dictionary<string,List<string>>> rounds= new List<Dictionary<string, List<string>>>();
         Leadboard leadboard = new Leadboard();
+
+        foreach(var group in groups)
+        {
+            var teams = group.Value;
+            foreach(var team in teams)
+            {
+                foreach(var exibition in exibitions)
+                {
+                    if (team.ISOCode == exibition.Key)
+                    {
+                        CalculateInitialForm(team, exibition.Value);
+                    }
+                }
+            }
+        }
+
         foreach (var group in groups)
         {
             var team = group.Value;
@@ -191,8 +208,8 @@ class Program
     {
         Teams winner_team = null;
         Teams losser_team = null;
-        int first_team_fiba_ranking = team1.FIBARanking;
-        int second_team_fiba_ranking = team2.FIBARanking;
+        double first_team_fiba_ranking = team1.FIBARanking+team1.Form;
+        double second_team_fiba_ranking = team2.FIBARanking+team2.Form;
         if (first_team_fiba_ranking < second_team_fiba_ranking)
         {
             winner_team = team1;
@@ -207,12 +224,42 @@ class Program
        GenerateScoreInGroups(winner_team, losser_team,rounds,round);
         
     }
+    public static void CalculateInitialForm(Teams team,List<Match> results)
+    {
+        double Total_diff = 0;
+        foreach(Match match in results)
+        {
+            var team_opponent=GetTeamForMatchOpponent(match.Opponent);
+            int opponentRank = team_opponent!=null?team_opponent.FIBARanking:0;
+            string[] result = match.Result.Split('-');
+            int points_scored = int.Parse(result[0]);
+            int points_received = int.Parse(result[1]);
+            int points_dif = points_scored - points_received;
+            UpdateForm(team, points_dif, opponentRank);
+        }
+        
+    }
+    public static void UpdateForm(Teams team,double pointsDifference, int opponentRank)
+    {
+        team.Form+= pointsDifference + (team.FIBARanking - opponentRank) / 10;
+    }
+    public static Teams GetTeamForMatchOpponent(string opponent)
+    {
+        Teams team_get = null;
+        var groups = GetGroupsFromJson();
+        return groups.SelectMany(group => group.Value).FirstOrDefault(team => team.ISOCode == opponent);
+    }
+    public static Dictionary<string,List<Teams>> GetGroupsFromJson()
+    {
+        string group_json = File.ReadAllText("C:\\Users\\Djordje\\Desktop\\BasketballTournamentC#\\BasketballTournamentC#\\Data\\groups.json");
+        return JsonSerializer.Deserialize<Dictionary<string, List<Teams>>>(group_json);
+    }
     public static void GenerateScoreInGroups(Teams team1, Teams team2, List<Dictionary<string, List<string>>> rounds, string round)
     {
 
         Random random = new Random();
-        int first_team_score = random.Next(70, 120);
-        int second_team_score = random.Next(10, 69);
+        int first_team_score = random.Next(71, 120);
+        int second_team_score = random.Next(50, 70);
         int first_team_diff_points = first_team_score - second_team_score;
         int second_team_diff_points = second_team_score - first_team_score;
         team1.Wins++;
@@ -227,6 +274,8 @@ class Program
         team2.PointsDiff += second_team_diff_points;
         team1.HeadToHeadResult.Add(team2.Team, $"{first_team_score}:{second_team_score}");
         team2.HeadToHeadResult.Add(team1.Team, $"{first_team_score}:{second_team_score}");
+        UpdateForm(team1, first_team_diff_points, team2.FIBARanking);
+        UpdateForm(team2,second_team_diff_points,team1.FIBARanking);
         string value= $"{team1.Team}:{team2.Team}:({first_team_score}:{second_team_score})";
         AddValueIfNotExistsInRounds(round, value, rounds);
         
@@ -306,7 +355,6 @@ class Program
         // If the key wasn't found in any round, add it as a new entry
 
     }
-
 
     public static List<Teams> RankTeamsInGroup(List<Teams> teams)
     {
@@ -557,7 +605,5 @@ class Program
         
        
     }
-
-    
 }
     
