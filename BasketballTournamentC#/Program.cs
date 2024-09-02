@@ -5,7 +5,7 @@ class Program
     static void Main(string[] args)
     {
         string result = "";
-        string exhibition_match = File.ReadAllText("C:\\Users\\Djordje\\Desktop\\BasketballTournamentC#\\BasketballTournamentC#\\Data\\exibitions.json");
+        string exhibition_match = File.ReadAllText(@"..\..\..\Data\exibitions.json");
         var groups = GetGroupsFromJson();
         var exibitions=JsonSerializer.Deserialize<Dictionary<string,List<Match>>>(exhibition_match);
         List<Dictionary<string,List<string>>> rounds= new List<Dictionary<string, List<string>>>();
@@ -251,7 +251,7 @@ class Program
     }
     public static Dictionary<string,List<Teams>> GetGroupsFromJson()
     {
-        string group_json = File.ReadAllText("C:\\Users\\Djordje\\Desktop\\BasketballTournamentC#\\BasketballTournamentC#\\Data\\groups.json");
+        string group_json = File.ReadAllText(@"..\..\..\Data\groups.json");
         return JsonSerializer.Deserialize<Dictionary<string, List<Teams>>>(group_json);
     }
     public static void GenerateScoreInGroups(Teams team1, Teams team2, List<Dictionary<string, List<string>>> rounds, string round)
